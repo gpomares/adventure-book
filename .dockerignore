@@ -1,0 +1,8 @@
+.env
+.git
+.idea
+target
+.mvn
+.vscode
+Dockerfile*
+compose.yaml
