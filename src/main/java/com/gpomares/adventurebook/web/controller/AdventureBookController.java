@@ -1,7 +1,9 @@
 package com.gpomares.adventurebook.web.controller;
 
 import com.gpomares.adventurebook.application.AdventureBookService;
+import com.gpomares.adventurebook.exception.InvalidAdventureBookException;
 import com.gpomares.adventurebook.web.json.AdventureBookSummary;
+import com.gpomares.adventurebook.web.json.CategoryRequest;
 import com.gpomares.adventurebook.web.mapper.AdventureBookJsonMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,11 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.ProblemDetail;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
 
 @RestController
 @Tag(name = "Adventure books", description = "Adventure book lookup operations")
@@ -53,5 +57,57 @@ public class AdventureBookController {
             required = true,
             example = "7") @PathVariable Long id) {
         return ResponseEntity.ok(mapper.mapSummary(service.get(id)));
+    }
+
+    @PostMapping("/api/adventure-books/{id}/categories")
+    @Operation(summary = "Add a category", description = "Adds a trimmed, case-sensitive category. An existing category is a no-op.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Category added"),
+            @ApiResponse(responseCode = "204", description = "Category already exists"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or category", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Adventure book not found", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<Void> addCategory(
+            @PathVariable Long id,
+            @RequestBody(required = true) @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true, description = "The category name to add",
+                    content = @Content(schema = @Schema(implementation = CategoryRequest.class))) CategoryRequest request) {
+        if (request == null || request.name() == null) {
+            throw new InvalidAdventureBookException("Category must not be blank");
+        }
+        boolean added = service.addCategory(id, request.name());
+        if (!added) {
+            return ResponseEntity.noContent().build();
+        }
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .pathSegment(request.name().trim()).build().encode().toUri();
+        return ResponseEntity.created(location).build();
+    }
+
+    @PutMapping("/api/adventure-books/{id}/categories")
+    @Operation(summary = "Replace categories", description = "Replaces the complete category set after trimming names, collapsing normalized duplicates, and preserving case sensitivity. An empty array clears all categories.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Categories replaced"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body or category", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Adventure book not found", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<Void> replaceCategories(@PathVariable Long id,
+                                                  @RequestBody(required = true) @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                                                          required = true, description = "The complete replacement category array; use [] to clear all categories",
+                                                          content = @Content(schema = @Schema(type = "array", implementation = String.class))) List<String> categories) {
+        service.replaceCategories(id, categories);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/api/adventure-books/{id}/categories/{category}")
+    @Operation(summary = "Remove a category", description = "Removes a trimmed, case-sensitive category. Removing an absent category is a no-op. Category values containing a slash cannot be routed by this path template.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Category removed or already absent"),
+            @ApiResponse(responseCode = "400", description = "Invalid category path value", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Adventure book not found", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<Void> removeCategory(@PathVariable Long id, @PathVariable String category) {
+        service.removeCategory(id, category);
+        return ResponseEntity.noContent().build();
     }
 }

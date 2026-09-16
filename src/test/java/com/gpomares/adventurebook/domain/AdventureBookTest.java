@@ -35,6 +35,43 @@ class AdventureBookTest {
         assertEquals(java.util.Set.of("fantasy"), book.getCategories());
     }
 
+    @Test
+    void replacesCategoriesAfterNormalizingAndCollapsingDuplicates() {
+        AdventureBook book = book();
+        book.addCategory("old");
+
+        book.replaceCategories(java.util.List.of(" fantasy ", "fantasy", "Mystery"));
+
+        assertEquals(java.util.Set.of("fantasy", "Mystery"), book.getCategories());
+    }
+
+    @Test
+    void invalidReplacementDoesNotModifyExistingCategories() {
+        AdventureBook book = book();
+        book.addCategory("old");
+
+        assertThrows(InvalidAdventureBookException.class,
+                () -> book.replaceCategories(java.util.List.of("new", " ")));
+
+        assertEquals(java.util.Set.of("old"), book.getCategories());
+    }
+
+    @Test
+    void rejectsCategoriesLongerThanThePersistenceColumn() {
+        assertThrows(InvalidAdventureBookException.class,
+                () -> book().addCategory("a".repeat(101)));
+    }
+
+    @Test
+    void keepsCategoryCaseSensitive() {
+        AdventureBook book = book();
+
+        book.addCategory("Fantasy");
+        book.addCategory("fantasy");
+
+        assertEquals(java.util.Set.of("Fantasy", "fantasy"), book.getCategories());
+    }
+
     private AdventureBook book() {
         return AdventureBook.Builder.adventureBook()
                 .title("Book").author("Author").difficulty(Difficulty.EASY).build();

@@ -12,9 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class AdventureBookControllerTest {
@@ -23,15 +25,32 @@ class AdventureBookControllerTest {
     private AdventureBookService service;
     private AdventureBookJsonMapper mapper;
     private MockMvc mockMvc;
+    private Set<String> categoryState;
 
     @BeforeEach
     void setUp() {
         dto = new AdventureBookSummaryDto(7L, "Book", "Author", "EASY", Set.of("fantasy"));
-        service = id -> {
-            if (id == 99L) throw new AdventureBookNotFoundException(99L);
-            if (id == 400L) throw new InvalidAdventureBookException("Category must not be blank");
-            if (id == 500L) throw new IllegalStateException("sensitive internal failure");
-            return dto;
+        service = new AdventureBookService() {
+            @Override
+            public AdventureBookSummaryDto get(Long id) {
+                if (id == 99L) throw new AdventureBookNotFoundException(99L);
+                if (id == 400L) throw new InvalidAdventureBookException("Category must not be blank");
+                if (id == 500L) throw new IllegalStateException("sensitive internal failure");
+                return dto;
+            }
+
+            @Override
+            public boolean addCategory(Long id, String category) {
+                return false;
+            }
+
+            @Override
+            public void replaceCategories(Long id, List<String> categories) {
+            }
+
+            @Override
+            public void removeCategory(Long id, String category) {
+            }
         };
         mapper = new AdventureBookJsonMapper() {
             @Override
@@ -89,5 +108,88 @@ class AdventureBookControllerTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.detail").value("An unexpected error occurred"))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("sensitive internal failure"))));
+    }
+
+    @Test
+    void returnsCreatedAndALocationWhenAddingANewCategory() throws Exception {
+        useCategoryService(Set.of("existing"));
+
+        mockMvc.perform(post("/api/adventure-books/7/categories")
+                        .contentType("application/json").content("{\"name\":\" fantasy \"}"))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "http://localhost/api/adventure-books/7/categories/fantasy"))
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void returnsNoContentWhenAddingADuplicateCategory() throws Exception {
+        useCategoryService(Set.of("fantasy"));
+
+        mockMvc.perform(post("/api/adventure-books/7/categories")
+                        .contentType("application/json").content("{\"name\":\" fantasy \"}"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void replacesAndRemovesCategoriesWithNoResponseBody() throws Exception {
+        useCategoryService(Set.of("fantasy"));
+
+        mockMvc.perform(put("/api/adventure-books/7/categories")
+                        .contentType("application/json").content("[\" fantasy \",\"fantasy\",\"Mystery\"]"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        org.junit.jupiter.api.Assertions.assertEquals(Set.of("fantasy", "Mystery"), categoryState);
+
+        mockMvc.perform(delete("/api/adventure-books/7/categories/fantasy"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        mockMvc.perform(delete("/api/adventure-books/7/categories/absent"))
+                .andExpect(status().isNoContent());
+        org.junit.jupiter.api.Assertions.assertEquals(Set.of("Mystery"), categoryState);
+    }
+
+    @Test
+    void returnsNotFoundForCategoryMutationOnMissingBook() throws Exception {
+        useCategoryService(Set.of("fantasy"));
+
+        mockMvc.perform(put("/api/adventure-books/99/categories")
+                        .contentType("application/json").content("[]"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    private void useCategoryService(Set<String> initialCategories) {
+        categoryState = new LinkedHashSet<>(initialCategories);
+        service = new AdventureBookService() {
+            @Override
+            public AdventureBookSummaryDto get(Long id) {
+                return dto;
+            }
+
+            @Override
+            public boolean addCategory(Long id, String category) {
+                if (id == 99L) throw new AdventureBookNotFoundException(id);
+                String normalized = category.trim();
+                return categoryState.add(normalized);
+            }
+
+            @Override
+            public void replaceCategories(Long id, List<String> categories) {
+                if (id == 99L) throw new AdventureBookNotFoundException(id);
+                categoryState.clear();
+                categories.forEach(category -> categoryState.add(category.trim()));
+            }
+
+            @Override
+            public void removeCategory(Long id, String category) {
+                if (id == 99L) throw new AdventureBookNotFoundException(id);
+                categoryState.remove(category.trim());
+            }
+        };
+        mockMvc = MockMvcBuilders.standaloneSetup(new AdventureBookController(service, mapper))
+                .setControllerAdvice(new GlobalControllerExceptionHandler())
+                .build();
     }
 }

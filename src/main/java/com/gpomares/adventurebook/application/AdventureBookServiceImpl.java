@@ -5,14 +5,16 @@ import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
-public class ApplicationBookServiceImpl implements AdventureBookService {
+public class AdventureBookServiceImpl implements AdventureBookService {
 
     private final AdventureBookDomainService adventureBookDomainService;
     private final AdventureBookMapper mapper;
 
     @Autowired
-    public ApplicationBookServiceImpl(AdventureBookDomainService adventureBookDomainService, AdventureBookMapper mapper) {
+    public AdventureBookServiceImpl(AdventureBookDomainService adventureBookDomainService, AdventureBookMapper mapper) {
         this.adventureBookDomainService = adventureBookDomainService;
         this.mapper = mapper;
     }
@@ -20,5 +22,20 @@ public class ApplicationBookServiceImpl implements AdventureBookService {
     @Override
     public AdventureBookSummaryDto get(Long id) {
         return mapper.mapSummary(adventureBookDomainService.findById(id));
+    }
+
+    @Override
+    public boolean addCategory(Long id, String category) {
+        return adventureBookDomainService.addCategory(id, category);
+    }
+
+    @Override
+    public void replaceCategories(Long id, List<String> categories) {
+        adventureBookDomainService.replaceCategories(id, categories);
+    }
+
+    @Override
+    public void removeCategory(Long id, String category) {
+        adventureBookDomainService.removeCategory(id, category);
     }
 }

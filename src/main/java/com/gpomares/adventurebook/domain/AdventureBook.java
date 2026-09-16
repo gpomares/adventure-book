@@ -52,7 +52,7 @@ public class AdventureBook {
         this.title = builder.title;
         this.author = builder.author;
         this.difficulty = builder.difficulty;
-        this.categories = builder.categories;
+        builder.categories.forEach(this::addCategory);
         builder.sections.forEach(this::addSection);
     }
 
@@ -89,7 +89,7 @@ public class AdventureBook {
         public Builder categories(Set<String> categories) {
             this.categories.clear();
             if (categories != null) {
-                this.categories.addAll(categories);
+                categories.forEach(category -> this.categories.add(normalizeCategory(category)));
             }
             return this;
         }
@@ -142,16 +142,36 @@ public class AdventureBook {
         sections.remove(section);
     }
 
-    public void addCategory(String category) {
-        if (category == null || category.isBlank()) {
-            throw new InvalidAdventureBookException("Category must not be blank");
-        }
-        categories.add(category.trim());
+    public boolean addCategory(String category) {
+        return categories.add(normalizeCategory(category));
     }
 
     public void removeCategory(String category) {
         if (category != null) {
-            categories.remove(category.trim());
+            categories.remove(normalizeCategory(category));
         }
+    }
+
+    public void replaceCategories(Collection<String> replacement) {
+        if (replacement == null) {
+            throw new InvalidAdventureBookException("Categories must not be null");
+        }
+
+        Set<String> normalized = new LinkedHashSet<>();
+        replacement.forEach(category -> normalized.add(normalizeCategory(category)));
+        categories.clear();
+        categories.addAll(normalized);
+    }
+
+    private static String normalizeCategory(String category) {
+        if (category == null || category.isBlank()) {
+            throw new InvalidAdventureBookException("Category must not be blank");
+        }
+
+        String normalized = category.trim();
+        if (normalized.length() > 100) {
+            throw new InvalidAdventureBookException("Category must not be longer than 100 characters");
+        }
+        return normalized;
     }
 }

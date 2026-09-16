@@ -7,6 +7,7 @@ import com.gpomares.adventurebook.domain.Difficulty;
 import com.gpomares.adventurebook.domain.Option;
 import com.gpomares.adventurebook.domain.Section;
 import com.gpomares.adventurebook.domain.SectionType;
+import com.gpomares.adventurebook.application.AdventureBookService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ class AdventureBookApplicationTests {
 
     @jakarta.annotation.Resource
     private JdbcTemplate jdbcTemplate;
+
+    @jakarta.annotation.Resource
+    private AdventureBookService adventureBookService;
 
 	@Test
 	void contextLoads() {
@@ -102,6 +106,29 @@ class AdventureBookApplicationTests {
 
         AdventureBook persisted = entityManager.find(AdventureBook.class, book.getId());
         Assertions.assertNull(persisted.getSections().getFirst().getOptions().getFirst().getConsequence());
+    }
+
+    @Test
+    @Transactional
+    void persistsCategoryMutationsThroughTheApplicationService() {
+        AdventureBook book = AdventureBook.Builder.adventureBook()
+                .title("Category book")
+                .author("Test author")
+                .difficulty(Difficulty.EASY)
+                .categories(java.util.Set.of("old"))
+                .build();
+        entityManager.persist(book);
+        entityManager.flush();
+
+        org.junit.jupiter.api.Assertions.assertTrue(adventureBookService.addCategory(book.getId(), " fantasy "));
+        adventureBookService.replaceCategories(book.getId(), java.util.List.of(" mystery ", "mystery", "Mystery"));
+        adventureBookService.removeCategory(book.getId(), "missing");
+        entityManager.flush();
+        entityManager.clear();
+
+        AdventureBook persisted = entityManager.find(AdventureBook.class, book.getId());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                java.util.Set.of("mystery", "Mystery"), persisted.getCategories());
     }
 
 }
