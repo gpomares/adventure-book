@@ -1,5 +1,7 @@
 package com.gpomares.adventurebook.domain;
 
+import com.gpomares.adventurebook.exception.InvalidAdventureBookException;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -142,7 +144,7 @@ public class AdventureBook {
 
     public void addCategory(String category) {
         if (category == null || category.isBlank()) {
-            throw new IllegalArgumentException("category must not be blank");
+            throw new InvalidAdventureBookException("Category must not be blank");
         }
         categories.add(category.trim());
     }

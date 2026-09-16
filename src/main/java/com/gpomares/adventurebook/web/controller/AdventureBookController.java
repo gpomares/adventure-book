@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,8 +37,15 @@ public class AdventureBookController {
             @ApiResponse(responseCode = "200", description = "Adventure book found", content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = AdventureBookSummary.class))),
-            @ApiResponse(responseCode = "400", description = "The identifier is not a valid number"),
-            @ApiResponse(responseCode = "404", description = "Adventure book not found")
+            @ApiResponse(responseCode = "400", description = "The identifier is not a valid number or the adventure book is invalid", content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Adventure book not found", content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Unexpected server failure", content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<AdventureBookSummary> get(@Parameter(
             in = ParameterIn.PATH,
