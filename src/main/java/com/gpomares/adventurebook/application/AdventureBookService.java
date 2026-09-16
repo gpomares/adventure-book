@@ -1,8 +1,8 @@
 package com.gpomares.adventurebook.application;
 
-import com.gpomares.adventurebook.dto.AdventureBookDto;
+import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 
 public interface AdventureBookService {
 
-    AdventureBookDto get(Long id);
+    AdventureBookSummaryDto get(Long id);
 }

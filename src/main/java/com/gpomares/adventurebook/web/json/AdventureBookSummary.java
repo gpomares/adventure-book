@@ -2,7 +2,7 @@ package com.gpomares.adventurebook.web.json;
 
 import java.util.Set;
 
-public record AdventureBook(
+public record AdventureBookSummary(
         Long id,
         String title,
         String author,

@@ -1,10 +1,9 @@
 package com.gpomares.adventurebook.web.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gpomares.adventurebook.dto.AdventureBookDto;
+import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,8 +13,8 @@ class AdventureBookJsonMapperTest {
 
     @Test
     void exposesOnlyThePublicBookFields() throws Exception {
-        var dto = new AdventureBookDto(7L, "Book", "Author", "EASY", Set.of("fantasy"), List.of());
-        var json = new ObjectMapper().writeValueAsString(new AdventureBookJsonMapper().map(dto));
+        var dto = new AdventureBookSummaryDto(7L, "Book", "Author", "EASY", Set.of("fantasy"));
+        var json = new ObjectMapper().writeValueAsString(new AdventureBookJsonMapper().mapSummary(dto));
 
         var node = new ObjectMapper().readTree(json);
         var fields = new HashSet<String>();

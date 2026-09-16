@@ -1,14 +1,14 @@
 package com.gpomares.adventurebook.web.mapper;
 
-import com.gpomares.adventurebook.dto.AdventureBookDto;
-import com.gpomares.adventurebook.web.json.AdventureBook;
+import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
+import com.gpomares.adventurebook.web.json.AdventureBookSummary;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AdventureBookJsonMapper {
 
-    public AdventureBook map(AdventureBookDto dto) {
-        return new AdventureBook(
+    public AdventureBookSummary mapSummary(AdventureBookSummaryDto dto) {
+        return new AdventureBookSummary(
                 dto.id(), dto.title(), dto.author(), dto.difficulty(), dto.categories()
         );
     }

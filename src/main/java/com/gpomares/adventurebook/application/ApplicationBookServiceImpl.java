@@ -1,7 +1,7 @@
 package com.gpomares.adventurebook.application;
 
 import com.gpomares.adventurebook.domain.AdventureBookDomainService;
-import com.gpomares.adventurebook.dto.AdventureBookDto;
+import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ public class ApplicationBookServiceImpl implements AdventureBookService {
     }
 
     @Override
-    public AdventureBookDto get(Long id) {
-        return mapper.map(adventureBookDomainService.findById(id));
+    public AdventureBookSummaryDto get(Long id) {
+        return mapper.mapSummary(adventureBookDomainService.findById(id));
     }
 }

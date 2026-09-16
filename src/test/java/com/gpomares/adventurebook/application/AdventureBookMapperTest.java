@@ -7,6 +7,7 @@ import com.gpomares.adventurebook.domain.Option;
 import com.gpomares.adventurebook.domain.Section;
 import com.gpomares.adventurebook.domain.SectionType;
 import com.gpomares.adventurebook.domain.AdventureBook;
+import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -18,6 +19,23 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class AdventureBookMapperTest {
 
     private final AdventureBookMapper mapper = new AdventureBookMapper();
+
+    @Test
+    void mapsBookSummaryWithoutSections() {
+        var book = AdventureBook.Builder.adventureBook()
+                .title("The Cave").author("A. Writer").difficulty(Difficulty.HARD)
+                .categories(Set.of("fantasy", "classic"))
+                .sections(List.of(Section.Builder.section().id(1).text("Start").type(SectionType.BEGIN).build()))
+                .build();
+
+        AdventureBookSummaryDto dto = mapper.mapSummary(book);
+
+        assertNull(dto.id());
+        assertEquals("The Cave", dto.title());
+        assertEquals("A. Writer", dto.author());
+        assertEquals("HARD", dto.difficulty());
+        assertEquals(Set.of("fantasy", "classic"), dto.categories());
+    }
 
     @Test
     void mapsTheCompleteBookTree() {
