@@ -7,6 +7,7 @@ import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -40,7 +41,8 @@ class AdventureBookListLoadingTest {
         SessionFactory sessionFactory = entityManager.getEntityManagerFactory().unwrap(SessionFactory.class);
         Statistics statistics = sessionFactory.getStatistics();
         statistics.clear();
-        service.search(new com.gpomares.adventurebook.domain.AdventureBookFilter(null, null, null, null));
+        service.search(new com.gpomares.adventurebook.domain.AdventureBookFilter(null, null, null, null),
+                PageRequest.of(0, 20));
 
         AdventureBook managed = entityManager.find(AdventureBook.class, book.getId());
         assertFalse(entityManager.getEntityManagerFactory().getPersistenceUnitUtil()
@@ -57,7 +59,8 @@ class AdventureBookListLoadingTest {
                 .difficulty(Difficulty.EASY).categories(Set.of("Fantasy")).build());
         repository.flush();
 
-        var summaries = service.search(new com.gpomares.adventurebook.domain.AdventureBookFilter(null, null, null, null));
+        var summaries = service.search(new com.gpomares.adventurebook.domain.AdventureBookFilter(null, null, null, null),
+                PageRequest.of(0, 20));
 
         assertEquals(Set.of("Fantasy"), summaries.stream()
                 .filter(summary -> summary.title().equals("Categories"))

@@ -4,6 +4,8 @@ import com.gpomares.adventurebook.domain.AdventureBookDomainService;
 import com.gpomares.adventurebook.domain.AdventureBookFilter;
 import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +30,8 @@ public class AdventureBookServiceImpl implements AdventureBookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdventureBookSummaryDto> search(AdventureBookFilter filter) {
-        return adventureBookDomainService.search(filter).stream()
-                .map(mapper::mapSummary)
-                .toList();
+    public Page<AdventureBookSummaryDto> search(AdventureBookFilter filter, Pageable pageable) {
+        return adventureBookDomainService.search(filter, pageable).map(mapper::mapSummary);
     }
 
     @Override

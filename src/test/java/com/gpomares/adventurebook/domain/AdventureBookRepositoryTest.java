@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.Set;
 
@@ -86,11 +88,12 @@ class AdventureBookRepositoryTest {
         }
         repository.flush();
 
-        var books = domainService.search(new AdventureBookFilter(" ", "\t", " ", null));
+        var books = domainService.search(new AdventureBookFilter(" ", "\t", " ", null),
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "title")));
 
-        assertEquals(25, books.size());
-        assertEquals("1000 Adventure", books.getFirst().getTitle());
-        assertEquals("dragon tales", books.getLast().getTitle());
+        assertEquals(25, books.getTotalElements());
+        assertEquals(20, books.getContent().size());
+        assertEquals("1000 Adventure", books.getContent().getFirst().getTitle());
     }
 
     private AdventureBook book(String title, String author, Difficulty difficulty, String... categories) {

@@ -15,7 +15,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -62,19 +67,20 @@ public class AdventureBookController {
     }
 
     @GetMapping("/api/adventure-books")
-    @Operation(summary = "List adventure books", description = "Lists adventure book summaries with optional filters.")
+    @Operation(summary = "List adventure books", description = "Lists paginated adventure book summaries with optional filters.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Adventure book summaries"),
+            @ApiResponse(responseCode = "200", description = "Paginated adventure book summaries"),
             @ApiResponse(responseCode = "400", description = "Invalid difficulty", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<List<AdventureBookSummary>> list(
+    public ResponseEntity<Page<AdventureBookSummary>> list(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) Difficulty difficulty) {
-        return ResponseEntity.ok(service.search(new AdventureBookFilter(title, author, category, difficulty)).stream()
-                .map(mapper::mapSummary)
-                .toList());
+            @RequestParam(required = false) Difficulty difficulty,
+            @ParameterObject @PageableDefault(page = 0, size = 20, sort = "title", direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(service.search(new AdventureBookFilter(title, author, category, difficulty), pageable)
+                .map(mapper::mapSummary));
     }
 
     @PostMapping("/api/adventure-books/{id}/categories")

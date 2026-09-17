@@ -2,7 +2,8 @@ package com.gpomares.adventurebook.domain;
 
 import com.gpomares.adventurebook.exception.AdventureBookNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +25,8 @@ public class AdventureBookDomainServiceImpl implements AdventureBookDomainServic
     }
 
     @Override
-    public List<AdventureBook> search(AdventureBookFilter filter) {
-        return adventureBookRepository.findAll(AdventureBookSpecifications.matching(filter),
-                Sort.by(Sort.Order.asc("title"), Sort.Order.asc("id")));
+    public Page<AdventureBook> search(AdventureBookFilter filter, Pageable pageable) {
+        return adventureBookRepository.findAll(AdventureBookSpecifications.matching(filter), pageable);
     }
 
     @Override

@@ -6,6 +6,9 @@ import com.gpomares.adventurebook.domain.AdventureBookFilter;
 import com.gpomares.adventurebook.domain.Difficulty;
 import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -22,8 +25,8 @@ class AdventureBookServiceImplTest {
             @Override public AdventureBook findById(Long id) { lookedUpId = id; return book; }
 
             @Override
-            public java.util.List<AdventureBook> search(AdventureBookFilter filter) {
-                return java.util.List.of();
+            public Page<AdventureBook> search(AdventureBookFilter filter, org.springframework.data.domain.Pageable pageable) {
+                return Page.empty(pageable);
             }
             @Override public boolean addCategory(Long id, String category) { return false; }
             @Override public void replaceCategories(Long id, java.util.List<String> categories) { }
@@ -53,11 +56,13 @@ class AdventureBookServiceImplTest {
             }
 
             AdventureBookFilter receivedFilter;
+            org.springframework.data.domain.Pageable receivedPageable;
 
             @Override
-            public java.util.List<AdventureBook> search(AdventureBookFilter filter) {
+            public Page<AdventureBook> search(AdventureBookFilter filter, org.springframework.data.domain.Pageable pageable) {
                 receivedFilter = filter;
-                return java.util.List.of(fullBook);
+                receivedPageable = pageable;
+                return new PageImpl<>(java.util.List.of(fullBook), pageable, 21);
             }
 
             @Override
@@ -75,9 +80,11 @@ class AdventureBookServiceImplTest {
         };
         var summary = new AdventureBookSummaryDto(null, "Book", "Author", "EASY", java.util.Set.of());
         var filter = new AdventureBookFilter(" Dragon ", " AUTHOR ", " Fantasy ", Difficulty.EASY);
-        var result = new AdventureBookServiceImpl(domainService, new AdventureBookMapper()).search(filter);
+        var pageable = PageRequest.of(2, 10);
+        var result = new AdventureBookServiceImpl(domainService, new AdventureBookMapper()).search(filter, pageable);
 
-        assertEquals(summary, result.getFirst());
+        assertEquals(summary, result.getContent().getFirst());
         assertSame(filter, domainService.receivedFilter);
+        assertSame(pageable, domainService.receivedPageable);
     }
 }

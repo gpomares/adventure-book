@@ -9,6 +9,8 @@ import com.gpomares.adventurebook.web.json.AdventureBookSummary;
 import com.gpomares.adventurebook.web.mapper.AdventureBookJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -40,8 +42,8 @@ class AdventureBookControllerTest {
             }
 
             @Override
-            public List<AdventureBookSummaryDto> search(com.gpomares.adventurebook.domain.AdventureBookFilter filter) {
-                return List.of();
+            public Page<AdventureBookSummaryDto> search(com.gpomares.adventurebook.domain.AdventureBookFilter filter, Pageable pageable) {
+                return Page.empty(pageable);
             }
 
             @Override
@@ -174,8 +176,8 @@ class AdventureBookControllerTest {
             }
 
             @Override
-            public List<AdventureBookSummaryDto> search(com.gpomares.adventurebook.domain.AdventureBookFilter filter) {
-                return List.of();
+            public Page<AdventureBookSummaryDto> search(com.gpomares.adventurebook.domain.AdventureBookFilter filter, Pageable pageable) {
+                return Page.empty(pageable);
             }
 
             @Override

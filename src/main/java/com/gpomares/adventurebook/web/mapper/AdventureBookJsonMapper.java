@@ -16,4 +16,5 @@ public class AdventureBookJsonMapper {
                 dto.id(), dto.title(), dto.author(), dto.difficulty(), dto.categories()
         );
     }
+
 }
