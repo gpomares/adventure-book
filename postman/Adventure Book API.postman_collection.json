@@ -1,0 +1,304 @@
+{
+  "info": {
+    "_postman_id": "87cbb4ee-5d18-4ff1-a7d1-4f743040244d",
+    "name": "Adventure Book API",
+    "description": "Requests for the Adventure Book API. Set `bookId` to an existing book before starting a reading session. The start-session request stores `sessionId` and the first available `optionId` automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "bookId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "optionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category",
+      "value": "Fantasy",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Adventure books",
+      "item": [
+        {
+          "name": "List adventure books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books?title=&author=&category=&difficulty=&page=0&size=20&sort=title,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books"
+              ],
+              "query": [
+                {
+                  "key": "title",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "author",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "difficulty",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "title,asc"
+                }
+              ]
+            },
+            "description": "Lists paginated book summaries. Enable and fill any optional filter. Difficulty is one of `EASY`, `MEDIUM`, or `HARD`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get adventure book summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books",
+                "{{bookId}}"
+              ]
+            },
+            "description": "Returns an adventure book's summary and categories."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Add category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{category}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books/{{bookId}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books",
+                "{{bookId}}",
+                "categories"
+              ]
+            },
+            "description": "Adds a category. Returns `201 Created`, or `204 No Content` when it already exists."
+          },
+          "response": []
+        },
+        {
+          "name": "Replace categories",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  \"Fantasy\",\n  \"Interactive fiction\"\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books/{{bookId}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books",
+                "{{bookId}}",
+                "categories"
+              ]
+            },
+            "description": "Replaces every category. Send `[]` to clear them."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove category",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books/{{bookId}}/categories/{{category}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books",
+                "{{bookId}}",
+                "categories",
+                "{{category}}"
+              ]
+            },
+            "description": "Removes the configured category. Values containing `/` cannot be used in this endpoint."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reading sessions",
+      "item": [
+        {
+          "name": "Start reading session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const session = pm.response.json();",
+                  "pm.collectionVariables.set(\"sessionId\", String(session.sessionId));",
+                  "",
+                  "if (session.section && session.section.options && session.section.options.length > 0) {",
+                  "    pm.collectionVariables.set(\"optionId\", String(session.section.options[0].id));",
+                  "} else {",
+                  "    pm.collectionVariables.unset(\"optionId\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books",
+                "{{bookId}}",
+                "reading-sessions"
+              ]
+            },
+            "description": "Starts at the book's `BEGIN` section with health 10. On success, saves the returned session ID and first available option ID for the next request."
+          },
+          "response": []
+        },
+        {
+          "name": "Choose current option",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const session = pm.response.json();",
+                  "if (session.section && session.section.options && session.section.options.length > 0) {",
+                  "    pm.collectionVariables.set(\"optionId\", String(session.section.options[0].id));",
+                  "} else {",
+                  "    pm.collectionVariables.unset(\"optionId\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions/{{sessionId}}/options/{{optionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "adventure-books",
+                "{{bookId}}",
+                "reading-sessions",
+                "{{sessionId}}",
+                "options",
+                "{{optionId}}"
+              ]
+            },
+            "description": "Applies the selected option. Run Start reading session first; each successful request updates `optionId` to the first option in the new section. Terminal sessions have no available option."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

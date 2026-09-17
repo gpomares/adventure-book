@@ -1,0 +1,70 @@
+###
+# Adventure Book API requests
+#
+# Set @bookId to an existing book ID. Run "Start reading session" before
+# "Choose current option"; those requests retain session state for this IDE session.
+
+@baseUrl = http://localhost:8080
+@bookId = 1
+@category = Fantasy
+
+### List adventure books
+# Optional filters: title, author, category, difficulty (EASY, MEDIUM, HARD).
+GET {{baseUrl}}/api/adventure-books?page=0&size=20&sort=title,asc
+
+### Get adventure book summary
+GET {{baseUrl}}/api/adventure-books/{{bookId}}
+
+### Add category
+POST {{baseUrl}}/api/adventure-books/{{bookId}}/categories
+Content-Type: application/json
+
+{
+  "name": "{{category}}"
+}
+
+### Replace categories
+PUT {{baseUrl}}/api/adventure-books/{{bookId}}/categories
+Content-Type: application/json
+
+[
+  "Fantasy",
+  "Interactive fiction"
+]
+
+### Remove category
+DELETE {{baseUrl}}/api/adventure-books/{{bookId}}/categories/{{category}}
+
+### Start reading session
+POST {{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions
+
+> {%
+    client.test("Status is 201 Created", function () {
+        client.assert(response.status === 201, "Expected 201, got " + response.status);
+    });
+
+    client.global.set("sessionId", String(response.body.sessionId));
+    const options = response.body.section && response.body.section.options;
+    if (options && options.length > 0) {
+        client.global.set("optionId", String(options[0].id));
+    } else {
+        client.global.clear("optionId");
+    }
+%}
+
+### Choose current option
+# This selects the first option from the current section. Re-run to continue until terminal.
+POST {{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions/{{sessionId}}/options/{{optionId}}
+
+> {%
+    client.test("Status is 200 OK", function () {
+        client.assert(response.status === 200, "Expected 200, got " + response.status);
+    });
+
+    const options = response.body.section && response.body.section.options;
+    if (options && options.length > 0) {
+        client.global.set("optionId", String(options[0].id));
+    } else {
+        client.global.clear("optionId");
+    }
+%}
