@@ -23,9 +23,27 @@ class AdventureBookApplicationTests {
     @jakarta.annotation.Resource
     private AdventureBookService adventureBookService;
 
+    @jakarta.annotation.Resource
+    private AdventureBookRepository adventureBookRepository;
+
 	@Test
-	void contextLoads() {
+    void contextLoads() {
 	}
+
+    @Test
+    void readsCategoriesThroughTheApplicationServiceWithOpenSessionInViewDisabled() {
+        AdventureBook book = AdventureBook.Builder.adventureBook()
+                .title("Lazy categories")
+                .author("Test author")
+                .difficulty(Difficulty.EASY)
+                .categories(java.util.Set.of("fantasy"))
+                .build();
+        AdventureBook saved = adventureBookRepository.save(book);
+
+        var summary = adventureBookService.get(saved.getId());
+
+        Assertions.assertEquals(java.util.Set.of("fantasy"), summary.categories());
+    }
 
     @Test
     void appliesFlywayMigrationAndValidatesJpaSchemaOnStartup() {

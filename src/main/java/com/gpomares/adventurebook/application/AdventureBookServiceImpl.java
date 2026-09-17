@@ -24,6 +24,7 @@ public class AdventureBookServiceImpl implements AdventureBookService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdventureBookSummaryDto get(Long id) {
         return mapper.mapSummary(adventureBookDomainService.findById(id));
     }
