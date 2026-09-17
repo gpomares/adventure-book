@@ -7,17 +7,45 @@
 @baseUrl = http://localhost:8080
 @bookId = 1
 @category = Fantasy
+@email = reader@example.com
+@password = correct horse battery staple
+@accessToken =
+
+### Register a user (run once; use a different email if it already exists)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Login and capture the bearer token
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+%}
 
 ### List adventure books
 # Optional filters: title, author, category, difficulty (EASY, MEDIUM, HARD).
 GET {{baseUrl}}/api/adventure-books?page=0&size=20&sort=title,asc
+Authorization: Bearer {{accessToken}}
 
 ### Get adventure book summary
 GET {{baseUrl}}/api/adventure-books/{{bookId}}
+Authorization: Bearer {{accessToken}}
 
 ### Add category
 POST {{baseUrl}}/api/adventure-books/{{bookId}}/categories
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "name": "{{category}}"
@@ -26,6 +54,7 @@ Content-Type: application/json
 ### Replace categories
 PUT {{baseUrl}}/api/adventure-books/{{bookId}}/categories
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 [
   "Fantasy",
@@ -34,9 +63,11 @@ Content-Type: application/json
 
 ### Remove category
 DELETE {{baseUrl}}/api/adventure-books/{{bookId}}/categories/{{category}}
+Authorization: Bearer {{accessToken}}
 
 ### Start reading session
 POST {{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions
+Authorization: Bearer {{accessToken}}
 
 > {%
     client.test("Status is 201 Created", function () {
@@ -55,6 +86,7 @@ POST {{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions
 ### Choose current option
 # This selects the first option from the current section. Re-run to continue until terminal.
 POST {{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions/{{sessionId}}/options/{{optionId}}
+Authorization: Bearer {{accessToken}}
 
 > {%
     client.test("Status is 200 OK", function () {
@@ -68,3 +100,11 @@ POST {{baseUrl}}/api/adventure-books/{{bookId}}/reading-sessions/{{sessionId}}/o
         client.global.clear("optionId");
     }
 %}
+
+### Recover one of your sessions
+GET {{baseUrl}}/api/reading-sessions/{{sessionId}}
+Authorization: Bearer {{accessToken}}
+
+### List your in-progress sessions
+GET {{baseUrl}}/api/reading-sessions?status=IN_PROGRESS
+Authorization: Bearer {{accessToken}}

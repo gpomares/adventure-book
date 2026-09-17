@@ -8,6 +8,7 @@ import com.gpomares.adventurebook.web.mapper.ReadingSessionJsonMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.net.URI;
 
 @RestController
 @Tag(name = "Reading sessions", description = "Adventure book reading operations")
+@SecurityRequirement(name = "bearerAuth")
 public class ReadingSessionController {
 
     private final ReadingSessionService service;

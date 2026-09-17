@@ -135,11 +135,15 @@ class ReadingSessionApiIntegrationTest {
     }
 
     @Test
-    void publishesBothReadingSessionOperationsInOpenApi() throws Exception {
+    void publishesJwtSecuritySchemeAndProtectsReadingSessionOperationsInOpenApi() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type").value("http"))
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
                 .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions'].post").exists())
-                .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions/{sessionId}/options/{optionId}'].post").exists());
+                .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions'].post.security[0].bearerAuth").exists())
+                .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions/{sessionId}/options/{optionId}'].post").exists())
+                .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions/{sessionId}/options/{optionId}'].post.security[0].bearerAuth").exists());
     }
 
     @Test

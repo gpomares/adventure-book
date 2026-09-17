@@ -17,6 +17,31 @@
 
 The generated API documentation is available at <http://localhost:8080/swagger-ui.html>.
 
+## Registration and login
+
+Register once with a normalized email and a password of at least 12 characters:
+
+```sh
+curl -X POST http://localhost:8080/api/users \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"reader@example.com","password":"correct horse battery staple"}'
+```
+
+Then obtain a token:
+
+```sh
+curl -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"reader@example.com","password":"correct horse battery staple"}'
+```
+
+The response contains `accessToken`, `tokenType` (`Bearer`), and `expiresIn`. Send it on every protected request:
+
+```sh
+curl http://localhost:8080/api/adventure-books \
+  -H 'Authorization: Bearer <accessToken>'
+```
+
 ## Reading an adventure book
 
 Start a reading session for a book. The reader begins at its `BEGIN` section with health `10`.
@@ -60,3 +85,5 @@ Each choice returns the updated health and current section. A session ends with 
 terminal responses expose no further options. Selecting an option that is not available from the current section, or
 choosing after the session ends, returns `409 Conflict`.
 
+Resume an owned session with `GET /api/reading-sessions/{sessionId}`, or list your in-progress sessions with
+`GET /api/reading-sessions?status=IN_PROGRESS`. Sessions owned by another user are reported as `404 Not Found`.

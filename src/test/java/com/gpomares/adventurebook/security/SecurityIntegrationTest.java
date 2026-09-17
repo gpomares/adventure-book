@@ -8,6 +8,8 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +38,18 @@ class SecurityIntegrationTest {
     void rejectsMalformedBearerTokens() throws Exception {
         mockMvc().perform(get("/api/adventure-books")
                         .header("Authorization", "Bearer not-a-jwt"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsExpiredBearerTokens() throws Exception {
+        JwtService expiredTokenService = new JwtService(new JwtProperties(
+                "dGVzdC1zaWduaW5nLXNlY3JldC10aGF0LWlzLWF0LWxlYXN0LTMyLWJ5dGVzLWxvbmc=",
+                Duration.ofSeconds(-1)));
+
+        mockMvc().perform(get("/api/adventure-books")
+                        .header("Authorization", "Bearer "
+                                + expiredTokenService.createAccessToken(42L, "reader@example.com")))
                 .andExpect(status().isUnauthorized());
     }
 

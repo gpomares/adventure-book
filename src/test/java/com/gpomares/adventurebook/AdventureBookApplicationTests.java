@@ -50,7 +50,11 @@ class AdventureBookApplicationTests {
         Assertions.assertEquals(1, jdbcTemplate.queryForObject(
                 "select count(*) from \"flyway_schema_history\" where \"version\" = '1'", Integer.class));
         Assertions.assertEquals(1, jdbcTemplate.queryForObject(
+                "select count(*) from \"flyway_schema_history\" where \"version\" = '5'", Integer.class));
+        Assertions.assertEquals(1, jdbcTemplate.queryForObject(
                 "select count(*) from information_schema.tables where table_name = 'ADVENTURE_BOOKS'", Integer.class));
+        Assertions.assertEquals(1, jdbcTemplate.queryForObject(
+                "select count(*) from information_schema.tables where table_name = 'APP_USERS'", Integer.class));
     }
 
     @Test
