@@ -14,8 +14,8 @@ class ReadingSessionMapperTest {
 
     @Test
     void hidesOptionsWhenTheReadingSessionHasReachedATerminalState() {
-        ReadingSession session = ReadingSession.start(1, 1);
-        session.progressTo(2, 0, ReadingSessionStatus.DEAD);
+        ReadingSession session = ReadingSession.start(1, 1, 1L);
+        session.progressTo(2, 0, ReadingSessionStatus.DEAD, 1L);
         Section destination = Section.Builder.section().sectionNumber(2).text("A dangerous room")
                 .type(SectionType.NODE)
                 .options(List.of(Option.Builder.option().description("Continue").gotoId(3).build()))

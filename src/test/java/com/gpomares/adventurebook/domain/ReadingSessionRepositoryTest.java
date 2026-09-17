@@ -43,7 +43,7 @@ class ReadingSessionRepositoryTest {
     @Test
     void persistsAStartedSessionAndFindsItWithinItsBook() {
         ReadingSession saved = readingSessionRepository.saveAndFlush(
-                ReadingSession.start(book.getId(), 1));
+                ReadingSession.start(book.getId(), 1, 1L));
         entityManager.clear();
 
         ReadingSession found = readingSessionRepository.findByIdAndBookId(saved.getId(), book.getId())

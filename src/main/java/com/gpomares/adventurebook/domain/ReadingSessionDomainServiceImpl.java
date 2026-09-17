@@ -18,7 +18,7 @@ public class ReadingSessionDomainServiceImpl implements ReadingSessionDomainServ
 
     @Override
     @Transactional
-    public ReadingSessionState start(Long bookId) {
+    public ReadingSessionState start(Long bookId, Long ownerId) {
         AdventureBook book = adventureBookDomainService.findById(bookId);
         Section begin = book.getSections().stream()
                 .filter(section -> section.getType() == SectionType.BEGIN)
@@ -26,15 +26,15 @@ public class ReadingSessionDomainServiceImpl implements ReadingSessionDomainServ
                 .orElseThrow(() -> new InvalidAdventureBookException("Adventure book has no BEGIN section"));
 
         ReadingSession session = readingSessionRepository.save(
-                ReadingSession.start(book.getId(), begin.getSectionNumber()));
+                ReadingSession.start(book.getId(), begin.getSectionNumber(), ownerId));
         return new ReadingSessionState(session, begin, null);
     }
 
     @Override
     @Transactional
-    public ReadingSessionState chooseOption(Long bookId, Long sessionId, Long optionId) {
+    public ReadingSessionState chooseOption(Long bookId, Long sessionId, Long optionId, Long updatedByUserId) {
         AdventureBook book = adventureBookDomainService.findById(bookId);
-        ReadingSession session = readingSessionRepository.findByIdAndBookId(sessionId, bookId)
+        ReadingSession session = readingSessionRepository.findByIdAndBookIdAndOwnerId(sessionId, bookId, updatedByUserId)
                 .orElseThrow(() -> new ReadingSessionNotFoundException(sessionId));
         if (session.getStatus() != ReadingSessionStatus.IN_PROGRESS) {
             throw new ReadingSessionConflictException("Reading session is no longer in progress");
@@ -49,7 +49,7 @@ public class ReadingSessionDomainServiceImpl implements ReadingSessionDomainServ
 
         int health = applyConsequence(session.getHealth(), option.getConsequence());
         Section destination = findSection(book, option.getGotoId());
-        session.progressTo(destination.getSectionNumber(), health, statusAfter(health, destination));
+        session.progressTo(destination.getSectionNumber(), health, statusAfter(health, destination), updatedByUserId);
 
         return new ReadingSessionState(session, destination, option.getConsequence());
     }

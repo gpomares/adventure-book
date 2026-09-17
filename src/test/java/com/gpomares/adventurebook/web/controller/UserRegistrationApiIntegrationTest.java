@@ -33,13 +33,17 @@ class UserRegistrationApiIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.gpomares.adventurebook.domain.ReadingSessionRepository readingSessionRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll();
+        readingSessionRepository.deleteAll();
+        userRepository.deleteByEmailNot("legacy-reading-sessions@system.invalid");
         mockMvc = webAppContextSetup(webApplicationContext).addFilters(securityFilterChain).build();
     }
 
@@ -59,7 +63,7 @@ class UserRegistrationApiIntegrationTest {
                 .andExpect(jsonPath("$.passwordHash").doesNotExist())
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(password))));
 
-        User user = userRepository.findAll().getFirst();
+        User user = userRepository.findByEmail("reader@example.com").orElseThrow();
         assertEquals("reader@example.com", user.getEmail());
         assertTrue(user.getPasswordHash().startsWith("$2"));
         assertTrue(passwordEncoder.matches(password, user.getPasswordHash()));
@@ -94,6 +98,6 @@ class UserRegistrationApiIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("An account with that email already exists"));
 
-        assertEquals(1, userRepository.count());
+        assertEquals(2, userRepository.count()); // the migration's legacy user is retained
     }
 }

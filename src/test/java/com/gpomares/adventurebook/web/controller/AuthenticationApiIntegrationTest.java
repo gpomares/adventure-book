@@ -39,13 +39,17 @@ class AuthenticationApiIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.gpomares.adventurebook.domain.ReadingSessionRepository readingSessionRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll();
+        readingSessionRepository.deleteAll();
+        userRepository.deleteByEmailNot("legacy-reading-sessions@system.invalid");
         mockMvc = webAppContextSetup(webApplicationContext).addFilters(securityFilterChain).build();
     }
 

@@ -33,6 +33,21 @@ public class ReadingSession {
     @Column(name = "ended_at")
     private Instant endedAt;
 
+    @Column(name = "owner_id", nullable = false, updatable = false)
+    private Long ownerId;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "created_by_user_id", nullable = false, updatable = false)
+    private Long createdByUserId;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "updated_by_user_id", nullable = false)
+    private Long updatedByUserId;
+
     @Version
     @Column(nullable = false)
     private Long version;
@@ -40,26 +55,35 @@ public class ReadingSession {
     protected ReadingSession() {
     }
 
-    private ReadingSession(long bookId, long currentSectionNumber) {
+    private ReadingSession(long bookId, long currentSectionNumber, long ownerId) {
         if (bookId <= 0) {
             throw new IllegalArgumentException("bookId must be positive");
         }
         if (currentSectionNumber <= 0) {
             throw new IllegalArgumentException("currentSectionNumber must be positive");
         }
+        if (ownerId <= 0) {
+            throw new IllegalArgumentException("ownerId must be positive");
+        }
 
+        Instant now = Instant.now();
         this.bookId = bookId;
         this.currentSectionNumber = currentSectionNumber;
         this.health = INITIAL_HEALTH;
         this.status = ReadingSessionStatus.IN_PROGRESS;
-        this.startedAt = Instant.now();
+        this.startedAt = now;
+        this.ownerId = ownerId;
+        this.createdAt = now;
+        this.createdByUserId = ownerId;
+        this.updatedAt = now;
+        this.updatedByUserId = ownerId;
     }
 
-    public static ReadingSession start(long bookId, long currentSectionNumber) {
-        return new ReadingSession(bookId, currentSectionNumber);
+    public static ReadingSession start(long bookId, long currentSectionNumber, long ownerId) {
+        return new ReadingSession(bookId, currentSectionNumber, ownerId);
     }
 
-    public void progressTo(long destinationSectionNumber, int health, ReadingSessionStatus status) {
+    public void progressTo(long destinationSectionNumber, int health, ReadingSessionStatus status, long updatedByUserId) {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
         }
@@ -72,11 +96,16 @@ public class ReadingSession {
         if (health < 0 || health > INITIAL_HEALTH) {
             throw new IllegalArgumentException("health must be between 0 and " + INITIAL_HEALTH);
         }
+        if (updatedByUserId <= 0) {
+            throw new IllegalArgumentException("updatedByUserId must be positive");
+        }
 
         this.currentSectionNumber = destinationSectionNumber;
         this.health = health;
         this.status = status;
         this.endedAt = status == ReadingSessionStatus.IN_PROGRESS ? null : Instant.now();
+        this.updatedAt = Instant.now();
+        this.updatedByUserId = updatedByUserId;
     }
 
     public Long getId() {
@@ -105,6 +134,26 @@ public class ReadingSession {
 
     public Instant getEndedAt() {
         return endedAt;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Long getCreatedByUserId() {
+        return createdByUserId;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Long getUpdatedByUserId() {
+        return updatedByUserId;
     }
 
     public Long getVersion() {

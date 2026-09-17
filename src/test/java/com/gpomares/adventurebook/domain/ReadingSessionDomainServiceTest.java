@@ -63,7 +63,7 @@ class ReadingSessionDomainServiceTest {
 
     @Test
     void startsAtTheBeginSectionWithInitialHealth() {
-        ReadingSessionState state = readingSessionDomainService.start(book.getId());
+        ReadingSessionState state = readingSessionDomainService.start(book.getId(), 1L);
 
         assertNotNull(state.session().getId());
         assertEquals(ReadingSession.INITIAL_HEALTH, state.session().getHealth());
@@ -75,10 +75,10 @@ class ReadingSessionDomainServiceTest {
 
     @Test
     void appliesConsequencesMovesToTheDestinationAndCompletesTheSession() {
-        ReadingSessionState started = readingSessionDomainService.start(book.getId());
+        ReadingSessionState started = readingSessionDomainService.start(book.getId(), 1L);
 
         ReadingSessionState afterInjury = readingSessionDomainService.chooseOption(
-                book.getId(), started.session().getId(), optionId(1, "Enter the crevice"));
+                book.getId(), started.session().getId(), optionId(1, "Enter the crevice"), 1L);
 
         assertEquals(6, afterInjury.session().getHealth());
         assertEquals(ReadingSessionStatus.IN_PROGRESS, afterInjury.session().getStatus());
@@ -86,7 +86,7 @@ class ReadingSessionDomainServiceTest {
         assertEquals(ConsequenceType.LOSE_HEALTH, afterInjury.consequence().getType());
 
         ReadingSessionState completed = readingSessionDomainService.chooseOption(
-                book.getId(), started.session().getId(), optionId(2, "Rest"));
+                book.getId(), started.session().getId(), optionId(2, "Rest"), 1L);
 
         assertEquals(10, completed.session().getHealth());
         assertEquals(ReadingSessionStatus.COMPLETED, completed.session().getStatus());
@@ -96,10 +96,10 @@ class ReadingSessionDomainServiceTest {
 
     @Test
     void marksAnAliveReaderAtANonEndSectionWithoutOptionsAsStuck() {
-        ReadingSessionState started = readingSessionDomainService.start(book.getId());
+        ReadingSessionState started = readingSessionDomainService.start(book.getId(), 1L);
 
         ReadingSessionState stuck = readingSessionDomainService.chooseOption(
-                book.getId(), started.session().getId(), optionId(1, "Take the dead end"));
+                book.getId(), started.session().getId(), optionId(1, "Take the dead end"), 1L);
 
         assertEquals(10, stuck.session().getHealth());
         assertEquals(ReadingSessionStatus.STUCK, stuck.session().getStatus());
@@ -109,23 +109,23 @@ class ReadingSessionDomainServiceTest {
 
     @Test
     void marksZeroHealthAsDeadAndRejectsAnyLaterChoice() {
-        ReadingSessionState started = readingSessionDomainService.start(book.getId());
+        ReadingSessionState started = readingSessionDomainService.start(book.getId(), 1L);
 
         ReadingSessionState dead = readingSessionDomainService.chooseOption(
-                book.getId(), started.session().getId(), optionId(1, "Take the fatal jump"));
+                book.getId(), started.session().getId(), optionId(1, "Take the fatal jump"), 1L);
 
         assertEquals(0, dead.session().getHealth());
         assertEquals(ReadingSessionStatus.DEAD, dead.session().getStatus());
         assertThrows(ReadingSessionConflictException.class, () -> readingSessionDomainService.chooseOption(
-                book.getId(), started.session().getId(), optionId(1, "Enter the crevice")));
+                book.getId(), started.session().getId(), optionId(1, "Enter the crevice"), 1L));
     }
 
     @Test
     void rejectsAnOptionThatIsNotAvailableFromTheCurrentSection() {
-        ReadingSessionState started = readingSessionDomainService.start(book.getId());
+        ReadingSessionState started = readingSessionDomainService.start(book.getId(), 1L);
 
         assertThrows(ReadingSessionConflictException.class, () -> readingSessionDomainService.chooseOption(
-                book.getId(), started.session().getId(), optionId(2, "Rest")));
+                book.getId(), started.session().getId(), optionId(2, "Rest"), 1L));
     }
 
     private long optionId(long sectionNumber, String description) {
