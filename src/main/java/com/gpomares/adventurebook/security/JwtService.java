@@ -59,6 +59,10 @@ public class JwtService {
         }
     }
 
+    public long accessTokenExpiresInSeconds() {
+        return properties.accessTokenExpiry().toSeconds();
+    }
+
     private static byte[] decodeSecret(String encodedSecret) {
         if (encodedSecret == null || encodedSecret.isBlank()) {
             throw new IllegalStateException("JWT_SIGNING_SECRET must be configured");
