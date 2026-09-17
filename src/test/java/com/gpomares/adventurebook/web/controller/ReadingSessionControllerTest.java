@@ -12,6 +12,7 @@ import com.gpomares.adventurebook.web.exception.GlobalControllerExceptionHandler
 import com.gpomares.adventurebook.web.mapper.ReadingSessionJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -45,6 +46,9 @@ class ReadingSessionControllerTest {
                 }
                 if (sessionId == 97L) {
                     throw new ReadingSessionConflictException("Reading session is no longer in progress");
+                }
+                if (sessionId == 96L) {
+                    throw new ObjectOptimisticLockingFailureException(Object.class, sessionId);
                 }
                 return progressedState();
             }
@@ -94,6 +98,15 @@ class ReadingSessionControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
                 .andExpect(jsonPath("$.detail").value("Reading session is no longer in progress"));
+    }
+
+    @Test
+    void returnsConflictWhenAConcurrentRequestHasAlreadyAdvancedTheSession() throws Exception {
+        mockMvc.perform(post("/api/adventure-books/7/reading-sessions/96/options/12"))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.detail").value(
+                        "Reading session was updated by another request; refresh its state and try again"));
     }
 
     @Test

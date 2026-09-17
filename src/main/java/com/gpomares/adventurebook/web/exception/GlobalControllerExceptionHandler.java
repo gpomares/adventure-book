@@ -9,6 +9,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -40,6 +41,13 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
     public ResponseEntity<ProblemDetail> handleReadingSessionConflict(
             ReadingSessionConflictException exception, HttpServletRequest request) {
         return problem(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> handleOptimisticLockingFailure(
+            OptimisticLockingFailureException exception, HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT,
+                "Reading session was updated by another request; refresh its state and try again", request);
     }
 
     @ExceptionHandler(InvalidAdventureBookException.class)
