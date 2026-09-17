@@ -1,20 +1,8 @@
 package com.gpomares.adventurebook.domain;
 
 import com.gpomares.adventurebook.exception.InvalidAdventureBookException;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.*;
 
@@ -37,6 +25,7 @@ public class AdventureBook {
     private Difficulty difficulty;
 
     @ElementCollection
+    @BatchSize(size = 20)
     @CollectionTable(name = "book_categories", joinColumns = @JoinColumn(name = "book_id"))
     @Column(name = "category", nullable = false, length = 100)
     private Set<String> categories = new LinkedHashSet<>();

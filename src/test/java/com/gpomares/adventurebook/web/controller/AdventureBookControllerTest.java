@@ -40,6 +40,11 @@ class AdventureBookControllerTest {
             }
 
             @Override
+            public List<AdventureBookSummaryDto> search(com.gpomares.adventurebook.domain.AdventureBookFilter filter) {
+                return List.of();
+            }
+
+            @Override
             public boolean addCategory(Long id, String category) {
                 return false;
             }
@@ -166,6 +171,11 @@ class AdventureBookControllerTest {
             @Override
             public AdventureBookSummaryDto get(Long id) {
                 return dto;
+            }
+
+            @Override
+            public List<AdventureBookSummaryDto> search(com.gpomares.adventurebook.domain.AdventureBookFilter filter) {
+                return List.of();
             }
 
             @Override

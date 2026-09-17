@@ -1,6 +1,8 @@
 package com.gpomares.adventurebook.web.controller;
 
 import com.gpomares.adventurebook.application.AdventureBookService;
+import com.gpomares.adventurebook.domain.AdventureBookFilter;
+import com.gpomares.adventurebook.domain.Difficulty;
 import com.gpomares.adventurebook.exception.InvalidAdventureBookException;
 import com.gpomares.adventurebook.web.json.AdventureBookSummary;
 import com.gpomares.adventurebook.web.json.CategoryRequest;
@@ -57,6 +59,22 @@ public class AdventureBookController {
             required = true,
             example = "7") @PathVariable Long id) {
         return ResponseEntity.ok(mapper.mapSummary(service.get(id)));
+    }
+
+    @GetMapping("/api/adventure-books")
+    @Operation(summary = "List adventure books", description = "Lists adventure book summaries with optional filters.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Adventure book summaries"),
+            @ApiResponse(responseCode = "400", description = "Invalid difficulty", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<List<AdventureBookSummary>> list(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Difficulty difficulty) {
+        return ResponseEntity.ok(service.search(new AdventureBookFilter(title, author, category, difficulty)).stream()
+                .map(mapper::mapSummary)
+                .toList());
     }
 
     @PostMapping("/api/adventure-books/{id}/categories")

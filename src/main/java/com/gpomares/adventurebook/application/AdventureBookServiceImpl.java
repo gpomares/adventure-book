@@ -1,9 +1,11 @@
 package com.gpomares.adventurebook.application;
 
 import com.gpomares.adventurebook.domain.AdventureBookDomainService;
+import com.gpomares.adventurebook.domain.AdventureBookFilter;
 import com.gpomares.adventurebook.dto.AdventureBookSummaryDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +24,14 @@ public class AdventureBookServiceImpl implements AdventureBookService {
     @Override
     public AdventureBookSummaryDto get(Long id) {
         return mapper.mapSummary(adventureBookDomainService.findById(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdventureBookSummaryDto> search(AdventureBookFilter filter) {
+        return adventureBookDomainService.search(filter).stream()
+                .map(mapper::mapSummary)
+                .toList();
     }
 
     @Override

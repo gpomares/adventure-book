@@ -2,6 +2,7 @@ package com.gpomares.adventurebook.domain;
 
 import com.gpomares.adventurebook.exception.AdventureBookNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,12 @@ public class AdventureBookDomainServiceImpl implements AdventureBookDomainServic
     @Override
     public AdventureBook findById(Long id) {
         return adventureBookRepository.findById(id).orElseThrow(() -> new AdventureBookNotFoundException(id));
+    }
+
+    @Override
+    public List<AdventureBook> search(AdventureBookFilter filter) {
+        return adventureBookRepository.findAll(AdventureBookSpecifications.matching(filter),
+                Sort.by(Sort.Order.asc("title"), Sort.Order.asc("id")));
     }
 
     @Override
