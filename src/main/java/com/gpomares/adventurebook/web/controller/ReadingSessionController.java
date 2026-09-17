@@ -2,6 +2,7 @@ package com.gpomares.adventurebook.web.controller;
 
 import com.gpomares.adventurebook.application.ReadingSessionService;
 import com.gpomares.adventurebook.dto.ReadingSessionDto;
+import com.gpomares.adventurebook.security.AuthenticatedUserProvider;
 import com.gpomares.adventurebook.web.json.ReadingSession;
 import com.gpomares.adventurebook.web.mapper.ReadingSessionJsonMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,10 +23,13 @@ public class ReadingSessionController {
 
     private final ReadingSessionService service;
     private final ReadingSessionJsonMapper mapper;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
-    public ReadingSessionController(ReadingSessionService service, ReadingSessionJsonMapper mapper) {
+    public ReadingSessionController(ReadingSessionService service, ReadingSessionJsonMapper mapper,
+                                    AuthenticatedUserProvider authenticatedUserProvider) {
         this.service = service;
         this.mapper = mapper;
+        this.authenticatedUserProvider = authenticatedUserProvider;
     }
 
     @PostMapping("/api/adventure-books/{bookId}/reading-sessions")
@@ -36,7 +40,7 @@ public class ReadingSessionController {
             @ApiResponse(responseCode = "400", description = "Invalid adventure book")
     })
     public ResponseEntity<ReadingSession> start(@PathVariable Long bookId) {
-        ReadingSessionDto state = service.start(bookId);
+        ReadingSessionDto state = service.start(bookId, authenticatedUserProvider.requireUserId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .pathSegment(state.sessionId().toString())
                 .build()
@@ -55,6 +59,7 @@ public class ReadingSessionController {
     public ResponseEntity<ReadingSession> chooseOption(@PathVariable Long bookId,
                                                        @PathVariable Long sessionId,
                                                        @PathVariable Long optionId) {
-        return ResponseEntity.ok(mapper.map(service.chooseOption(bookId, sessionId, optionId)));
+        return ResponseEntity.ok(mapper.map(service.chooseOption(bookId, sessionId, optionId,
+                authenticatedUserProvider.requireUserId())));
     }
 }

@@ -8,6 +8,8 @@ import com.gpomares.adventurebook.dto.PlayableOptionDto;
 import com.gpomares.adventurebook.dto.PlayableSectionDto;
 import com.gpomares.adventurebook.dto.ReadingSessionDto;
 import com.gpomares.adventurebook.exception.AdventureBookNotFoundException;
+import com.gpomares.adventurebook.security.AuthenticatedUser;
+import com.gpomares.adventurebook.security.AuthenticatedUserProvider;
 import com.gpomares.adventurebook.web.exception.GlobalControllerExceptionHandler;
 import com.gpomares.adventurebook.web.mapper.ReadingSessionJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,7 +32,7 @@ class ReadingSessionControllerTest {
     void setUp() {
         ReadingSessionService service = new ReadingSessionService() {
             @Override
-            public ReadingSessionDto start(Long bookId) {
+            public ReadingSessionDto start(Long bookId, Long userId) {
                 if (bookId == 99L) {
                     throw new AdventureBookNotFoundException(bookId);
                 }
@@ -37,7 +40,7 @@ class ReadingSessionControllerTest {
             }
 
             @Override
-            public ReadingSessionDto chooseOption(Long bookId, Long sessionId, Long optionId) {
+            public ReadingSessionDto chooseOption(Long bookId, Long sessionId, Long optionId, Long userId) {
                 if (bookId == 99L) {
                     throw new AdventureBookNotFoundException(bookId);
                 }
@@ -53,7 +56,8 @@ class ReadingSessionControllerTest {
                 return progressedState();
             }
         };
-        mockMvc = MockMvcBuilders.standaloneSetup(new ReadingSessionController(service, new ReadingSessionJsonMapper()))
+        AuthenticatedUserProvider currentUser = () -> Optional.of(new AuthenticatedUser(1L, "reader@example.com"));
+        mockMvc = MockMvcBuilders.standaloneSetup(new ReadingSessionController(service, new ReadingSessionJsonMapper(), currentUser))
                 .setControllerAdvice(new GlobalControllerExceptionHandler())
                 .build();
     }

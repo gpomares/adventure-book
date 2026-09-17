@@ -166,6 +166,22 @@ class ReadingSessionApiIntegrationTest {
         assertTrue(!advanced.getUpdatedAt().isBefore(createdAt));
     }
 
+    @Test
+    void doesNotDiscloseOrAdvanceAnotherUsersSession() throws Exception {
+        mockMvc.perform(authenticatedPost("/api/adventure-books/{bookId}/reading-sessions", book.getId()))
+                .andExpect(status().isCreated());
+        ReadingSession session = readingSessionRepository.findAll().getFirst();
+        User otherUser = userRepository.saveAndFlush(new User("other@example.com", "!", Instant.now()));
+        String otherToken = jwtService.createAccessToken(otherUser.getId(), otherUser.getEmail());
+
+        mockMvc.perform(post("/api/adventure-books/{bookId}/reading-sessions/{sessionId}/options/{optionId}",
+                        book.getId(), session.getId(), optionId(1, "Enter the crevice"))
+                        .header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isNotFound());
+
+        assertEquals(1, readingSessionRepository.findById(session.getId()).orElseThrow().getCurrentSectionNumber());
+    }
+
     private long optionId(long sectionNumber, String description) {
         return book.getSections().stream()
                 .filter(section -> section.getSectionNumber() == sectionNumber)
