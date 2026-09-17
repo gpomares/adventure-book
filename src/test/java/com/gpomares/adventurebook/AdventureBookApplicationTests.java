@@ -1,13 +1,7 @@
 package com.gpomares.adventurebook;
 
-import com.gpomares.adventurebook.domain.AdventureBook;
-import com.gpomares.adventurebook.domain.Consequence;
-import com.gpomares.adventurebook.domain.ConsequenceType;
-import com.gpomares.adventurebook.domain.Difficulty;
-import com.gpomares.adventurebook.domain.Option;
-import com.gpomares.adventurebook.domain.Section;
-import com.gpomares.adventurebook.domain.SectionType;
 import com.gpomares.adventurebook.application.AdventureBookService;
+import com.gpomares.adventurebook.domain.*;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -106,6 +100,47 @@ class AdventureBookApplicationTests {
 
         AdventureBook persisted = entityManager.find(AdventureBook.class, book.getId());
         Assertions.assertNull(persisted.getSections().getFirst().getOptions().getFirst().getConsequence());
+    }
+
+    @Test
+    @Transactional
+    void deletesBooksWithCyclicOptions() {
+        Option toTwo = Option.Builder.option().description("Two").gotoId(2).build();
+        Option toOne = Option.Builder.option().description("One").gotoId(1).build();
+        AdventureBook book = AdventureBook.Builder.adventureBook()
+                .title("Cycle").author("Author").difficulty(Difficulty.EASY)
+                .sections(List.of(
+                        Section.Builder.section().id(1).text("One").type(SectionType.NODE)
+                                .options(List.of(toTwo)).build(),
+                        Section.Builder.section().id(2).text("Two").type(SectionType.NODE)
+                                .options(List.of(toOne)).build()))
+                .build();
+
+        entityManager.persist(book);
+        entityManager.flush();
+        entityManager.clear();
+        entityManager.remove(entityManager.find(AdventureBook.class, book.getId()));
+        entityManager.flush();
+
+        Assertions.assertEquals(0, jdbcTemplate.queryForObject(
+                "select count(*) from options where id in (?, ?)", Integer.class, toTwo.getId(), toOne.getId()));
+        Assertions.assertEquals(0, jdbcTemplate.queryForObject(
+                "select count(*) from sections where book_id = ?", Integer.class, book.getId()));
+    }
+
+    @Test
+    @Transactional
+    void differentBooksCanReuseSectionNumbers() {
+        for (int i = 0; i < 2; i++) {
+            entityManager.persist(AdventureBook.Builder.adventureBook()
+                    .title("Book " + i).author("Author").difficulty(Difficulty.EASY)
+                    .sections(List.of(Section.Builder.section().sectionNumber(100)
+                            .text("End").type(SectionType.END).build()))
+                    .build());
+        }
+        entityManager.flush();
+        Assertions.assertEquals(2, jdbcTemplate.queryForObject(
+                "select count(*) from sections where section_number = 100", Integer.class));
     }
 
     @Test

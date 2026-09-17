@@ -29,7 +29,7 @@ class AdventureBookListLoadingTest {
     @Test
     @Transactional
     void listSummaryDoesNotFetchSectionsOrOptions() {
-        var option = Option.Builder.option().description("Continue").gotoId(2).build();
+        var option = Option.Builder.option().description("Continue").gotoId(901).build();
         var section = Section.Builder.section().id(901).text("Start").type(SectionType.BEGIN)
                 .options(List.of(option)).build();
         var book = AdventureBook.Builder.adventureBook().title("Loading test").author("Author")

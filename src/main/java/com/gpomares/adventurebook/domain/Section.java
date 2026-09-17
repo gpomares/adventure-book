@@ -1,14 +1,6 @@
 package com.gpomares.adventurebook.domain;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +10,12 @@ import java.util.List;
 public class Section {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
+
+    @Column(name = "section_number", nullable = false)
+    private long sectionNumber;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
@@ -36,7 +32,7 @@ public class Section {
     }
 
     private Section(Builder builder) {
-        this.id = builder.id;
+        this.sectionNumber = builder.sectionNumber;
         this.text = builder.text;
         this.type = builder.type;
         builder.options.forEach(this::addOption);
@@ -44,7 +40,7 @@ public class Section {
 
     public static class Builder {
 
-        private long id;
+        private long sectionNumber;
         private String text;
         private SectionType type;
         private final List<Option> options = new ArrayList<>();
@@ -57,7 +53,11 @@ public class Section {
         }
 
         public Builder id(long id) {
-            this.id = id;
+            return sectionNumber(id);
+        }
+
+        public Builder sectionNumber(long sectionNumber) {
+            this.sectionNumber = sectionNumber;
             return this;
         }
 
@@ -84,8 +84,12 @@ public class Section {
         }
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
+    }
+
+    public long getSectionNumber() {
+        return sectionNumber;
     }
 
     public String getText() {
@@ -107,4 +111,5 @@ public class Section {
     public void removeOption(Option option) {
         options.remove(option);
     }
+
 }

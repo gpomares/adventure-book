@@ -39,7 +39,7 @@ public class AdventureBookMapper {
 
     private SectionDto mapSection(Section section) {
         return new SectionDto(
-                section.getId(),
+                section.getSectionNumber(),
                 section.getText(),
                 nameOf(section.getType()),
                 section.getOptions().stream()
