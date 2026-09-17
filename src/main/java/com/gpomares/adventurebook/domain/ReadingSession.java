@@ -59,6 +59,26 @@ public class ReadingSession {
         return new ReadingSession(bookId, currentSectionNumber);
     }
 
+    public void progressTo(long destinationSectionNumber, int health, ReadingSessionStatus status) {
+        if (status == null) {
+            throw new IllegalArgumentException("status must not be null");
+        }
+        if (status == ReadingSessionStatus.IN_PROGRESS && this.status != ReadingSessionStatus.IN_PROGRESS) {
+            throw new ReadingSessionConflictException("Reading session is no longer in progress");
+        }
+        if (destinationSectionNumber <= 0) {
+            throw new IllegalArgumentException("destinationSectionNumber must be positive");
+        }
+        if (health < 0 || health > INITIAL_HEALTH) {
+            throw new IllegalArgumentException("health must be between 0 and " + INITIAL_HEALTH);
+        }
+
+        this.currentSectionNumber = destinationSectionNumber;
+        this.health = health;
+        this.status = status;
+        this.endedAt = status == ReadingSessionStatus.IN_PROGRESS ? null : Instant.now();
+    }
+
     public Long getId() {
         return id;
     }
