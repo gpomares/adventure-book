@@ -33,7 +33,7 @@ public class ReadingSessionController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Reading session created"),
             @ApiResponse(responseCode = "404", description = "Adventure book not found"),
-            @ApiResponse(responseCode = "400", description = "Invalid adventure book", useReturnTypeSchema = true)
+            @ApiResponse(responseCode = "400", description = "Invalid adventure book")
     })
     public ResponseEntity<ReadingSession> start(@PathVariable Long bookId) {
         ReadingSessionDto state = service.start(bookId);
@@ -48,7 +48,7 @@ public class ReadingSessionController {
     @Operation(summary = "Choose an option", description = "Applies its consequence and moves the reading session to the next section.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Reading session advanced"),
-            @ApiResponse(responseCode = "400", description = "Invalid path identifier", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "400", description = "Invalid path identifier"),
             @ApiResponse(responseCode = "404", description = "Adventure book or reading session not found"),
             @ApiResponse(responseCode = "409", description = "The session ended or the option is unavailable")
     })

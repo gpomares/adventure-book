@@ -10,6 +10,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -109,6 +110,14 @@ class ReadingSessionApiIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
                 .andExpect(jsonPath("$.detail").value("Option is not available from the current section"));
+    }
+
+    @Test
+    void publishesBothReadingSessionOperationsInOpenApi() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions'].post").exists())
+                .andExpect(jsonPath("$.paths['/api/adventure-books/{bookId}/reading-sessions/{sessionId}/options/{optionId}'].post").exists());
     }
 
     private long optionId(long sectionNumber, String description) {
