@@ -1,0 +1,60 @@
+package com.gpomares.adventurebook.web.controller;
+
+import com.gpomares.adventurebook.application.ReadingSessionService;
+import com.gpomares.adventurebook.dto.ReadingSessionDto;
+import com.gpomares.adventurebook.web.json.ReadingSession;
+import com.gpomares.adventurebook.web.mapper.ReadingSessionJsonMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+
+@RestController
+@Tag(name = "Reading sessions", description = "Adventure book reading operations")
+public class ReadingSessionController {
+
+    private final ReadingSessionService service;
+    private final ReadingSessionJsonMapper mapper;
+
+    public ReadingSessionController(ReadingSessionService service, ReadingSessionJsonMapper mapper) {
+        this.service = service;
+        this.mapper = mapper;
+    }
+
+    @PostMapping("/api/adventure-books/{bookId}/reading-sessions")
+    @Operation(summary = "Start a reading session", description = "Starts at the book's BEGIN section with health 10.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Reading session created"),
+            @ApiResponse(responseCode = "404", description = "Adventure book not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid adventure book", useReturnTypeSchema = true)
+    })
+    public ResponseEntity<ReadingSession> start(@PathVariable Long bookId) {
+        ReadingSessionDto state = service.start(bookId);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .pathSegment(state.sessionId().toString())
+                .build()
+                .toUri();
+        return ResponseEntity.created(location).body(mapper.map(state));
+    }
+
+    @PostMapping("/api/adventure-books/{bookId}/reading-sessions/{sessionId}/options/{optionId}")
+    @Operation(summary = "Choose an option", description = "Applies its consequence and moves the reading session to the next section.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Reading session advanced"),
+            @ApiResponse(responseCode = "400", description = "Invalid path identifier", useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "404", description = "Adventure book or reading session not found"),
+            @ApiResponse(responseCode = "409", description = "The session ended or the option is unavailable")
+    })
+    public ResponseEntity<ReadingSession> chooseOption(@PathVariable Long bookId,
+                                                       @PathVariable Long sessionId,
+                                                       @PathVariable Long optionId) {
+        return ResponseEntity.ok(mapper.map(service.chooseOption(bookId, sessionId, optionId)));
+    }
+}

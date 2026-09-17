@@ -1,5 +1,7 @@
 package com.gpomares.adventurebook.web.exception;
 
+import com.gpomares.adventurebook.domain.ReadingSessionConflictException;
+import com.gpomares.adventurebook.domain.ReadingSessionNotFoundException;
 import com.gpomares.adventurebook.exception.AdventureBookNotFoundException;
 import com.gpomares.adventurebook.exception.InvalidAdventureBookException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,11 +9,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -30,6 +28,18 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
     public ResponseEntity<ProblemDetail> handleNotFound(
             AdventureBookNotFoundException exception, HttpServletRequest request) {
         return problem(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ReadingSessionNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleReadingSessionNotFound(
+            ReadingSessionNotFoundException exception, HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ReadingSessionConflictException.class)
+    public ResponseEntity<ProblemDetail> handleReadingSessionConflict(
+            ReadingSessionConflictException exception, HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT, exception.getMessage(), request);
     }
 
     @ExceptionHandler(InvalidAdventureBookException.class)
