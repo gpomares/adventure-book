@@ -6,4 +6,8 @@ public interface ReadingSessionDomainService {
 
     ReadingSessionState chooseOption(Long bookId, Long sessionId, Long optionId, Long updatedByUserId);
 
+    ReadingSessionState get(Long sessionId, Long ownerId);
+
+    java.util.List<ReadingSessionState> list(Long ownerId, ReadingSessionStatus status);
+
 }

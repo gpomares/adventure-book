@@ -182,6 +182,34 @@ class ReadingSessionApiIntegrationTest {
         assertEquals(1, readingSessionRepository.findById(session.getId()).orElseThrow().getCurrentSectionNumber());
     }
 
+    @Test
+    void recoversOnlyTheAuthenticatedUsersInProgressSessions() throws Exception {
+        mockMvc.perform(authenticatedPost("/api/adventure-books/{bookId}/reading-sessions", book.getId()))
+                .andExpect(status().isCreated());
+        Long sessionId = readingSessionRepository.findAll().getFirst().getId();
+        User otherUser = userRepository.saveAndFlush(new User("other@example.com", "!", Instant.now()));
+        String otherToken = jwtService.createAccessToken(otherUser.getId(), otherUser.getEmail());
+
+        mockMvc.perform(get("/api/reading-sessions/{sessionId}", sessionId)
+                        .header("Authorization", "Bearer " + bearerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessionId").value(sessionId))
+                .andExpect(jsonPath("$.section.id").value(1));
+        mockMvc.perform(get("/api/reading-sessions").param("status", "IN_PROGRESS")
+                        .header("Authorization", "Bearer " + bearerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].sessionId").value(sessionId));
+
+        mockMvc.perform(get("/api/reading-sessions/{sessionId}", sessionId)
+                        .header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/reading-sessions").param("status", "IN_PROGRESS")
+                        .header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
     private long optionId(long sectionNumber, String description) {
         return book.getSections().stream()
                 .filter(section -> section.getSectionNumber() == sectionNumber)

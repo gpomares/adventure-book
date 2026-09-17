@@ -54,6 +54,26 @@ public class ReadingSessionDomainServiceImpl implements ReadingSessionDomainServ
         return new ReadingSessionState(session, destination, option.getConsequence());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ReadingSessionState get(Long sessionId, Long ownerId) {
+        ReadingSession session = readingSessionRepository.findByIdAndOwnerId(sessionId, ownerId)
+                .orElseThrow(() -> new ReadingSessionNotFoundException(sessionId));
+        AdventureBook book = adventureBookDomainService.findById(session.getBookId());
+        return new ReadingSessionState(session, findSection(book, session.getCurrentSectionNumber()), null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<ReadingSessionState> list(Long ownerId, ReadingSessionStatus status) {
+        return readingSessionRepository.findByOwnerIdAndStatusOrderByIdAsc(ownerId, status).stream()
+                .map(session -> {
+                    AdventureBook book = adventureBookDomainService.findById(session.getBookId());
+                    return new ReadingSessionState(session, findSection(book, session.getCurrentSectionNumber()), null);
+                })
+                .toList();
+    }
+
     private Section findSection(AdventureBook book, long sectionNumber) {
         return book.getSections().stream()
                 .filter(section -> section.getSectionNumber() == sectionNumber)

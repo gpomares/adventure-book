@@ -28,4 +28,17 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     public ReadingSessionDto chooseOption(Long bookId, Long sessionId, Long optionId, Long userId) {
         return mapper.map(readingSessionDomainService.chooseOption(bookId, sessionId, optionId, userId));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReadingSessionDto get(Long sessionId, Long userId) {
+        return mapper.map(readingSessionDomainService.get(sessionId, userId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<ReadingSessionDto> list(Long userId,
+                                                  com.gpomares.adventurebook.domain.ReadingSessionStatus status) {
+        return readingSessionDomainService.list(userId, status).stream().map(mapper::map).toList();
+    }
 }

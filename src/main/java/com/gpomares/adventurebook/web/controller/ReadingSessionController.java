@@ -10,9 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -61,5 +59,17 @@ public class ReadingSessionController {
                                                        @PathVariable Long optionId) {
         return ResponseEntity.ok(mapper.map(service.chooseOption(bookId, sessionId, optionId,
                 authenticatedUserProvider.requireUserId())));
+    }
+
+    @GetMapping("/api/reading-sessions/{sessionId}")
+    public ResponseEntity<ReadingSession> get(@PathVariable Long sessionId) {
+        return ResponseEntity.ok(mapper.map(service.get(sessionId, authenticatedUserProvider.requireUserId())));
+    }
+
+    @GetMapping("/api/reading-sessions")
+    public ResponseEntity<java.util.List<ReadingSession>> list(
+            @RequestParam com.gpomares.adventurebook.domain.ReadingSessionStatus status) {
+        return ResponseEntity.ok(service.list(authenticatedUserProvider.requireUserId(), status).stream()
+                .map(mapper::map).toList());
     }
 }

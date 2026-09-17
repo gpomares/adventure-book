@@ -55,6 +55,17 @@ class ReadingSessionControllerTest {
                 }
                 return progressedState();
             }
+
+            @Override
+            public ReadingSessionDto get(Long sessionId, Long userId) {
+                return initialState();
+            }
+
+            @Override
+            public List<ReadingSessionDto> list(Long userId,
+                                                com.gpomares.adventurebook.domain.ReadingSessionStatus status) {
+                return List.of(initialState());
+            }
         };
         AuthenticatedUserProvider currentUser = () -> Optional.of(new AuthenticatedUser(1L, "reader@example.com"));
         mockMvc = MockMvcBuilders.standaloneSetup(new ReadingSessionController(service, new ReadingSessionJsonMapper(), currentUser))
