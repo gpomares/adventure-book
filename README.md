@@ -22,7 +22,8 @@ The generated API documentation is available at <http://localhost:8080/swagger-u
 Start a reading session for a book. The reader begins at its `BEGIN` section with health `10`.
 
 ```sh
-curl -X POST http://localhost:8080/api/adventure-books/7/reading-sessions
+curl -X POST http://localhost:8080/api/adventure-books/7/reading-sessions \
+  -H "Authorization: Bearer <access-token>"
 ```
 
 The `201 Created` response contains the session state and only the options available from the current section:
@@ -51,7 +52,8 @@ Choose an option using the option ID from that response:
 
 ```sh
 curl -X POST \
-  http://localhost:8080/api/adventure-books/7/reading-sessions/42/options/12
+  http://localhost:8080/api/adventure-books/7/reading-sessions/42/options/12 \
+  -H "Authorization: Bearer <access-token>"
 ```
 
 Each choice returns the updated health and current section. A session ends with one of `COMPLETED`, `DEAD`, or `STUCK`;

@@ -4,6 +4,8 @@ import com.gpomares.adventurebook.domain.ReadingSessionConflictException;
 import com.gpomares.adventurebook.domain.ReadingSessionNotFoundException;
 import com.gpomares.adventurebook.exception.AdventureBookNotFoundException;
 import com.gpomares.adventurebook.exception.InvalidAdventureBookException;
+import com.gpomares.adventurebook.exception.InvalidUserRegistrationException;
+import com.gpomares.adventurebook.exception.UserAlreadyExistsException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -54,6 +56,18 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
     public ResponseEntity<ProblemDetail> handleInvalidAdventureBook(
             InvalidAdventureBookException exception, HttpServletRequest request) {
         return problem(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidUserRegistrationException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidUserRegistration(
+            InvalidUserRegistrationException exception, HttpServletRequest request) {
+        return problem(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleUserAlreadyExists(
+            UserAlreadyExistsException exception, HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT, exception.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
